@@ -23,13 +23,31 @@ A robust logging utility with advanced features:
 
 [View detailed Logger documentation](./documentation/logger_README.md)
 
+### TelegramBot
+A simple utility for sending Telegram notifications:
+- Send text messages to specified Telegram chat IDs
+- Easy integration with other applications
+- Simple API with minimal dependencies
+- Error handling for API communication issues
+
+[View detailed TelegramBot documentation](./documentation/tgbot_README.md)
+
+### FuturesAPIDecorator
+A decorator utility for cryptocurrency futures trading APIs:
+- Automatically log all trading actions (market orders, limit orders, position closures)
+- Send real-time notifications via Telegram for trading operations
+- Record both successful and failed trading actions
+- Compatible with any futures trading API that follows the AbstractFuturesAPI interface
+
+[View detailed FuturesAPIDecorator documentation](./documentation/futures_decorator_README.md)
+
 ## Installation
 
 ### Using pip
 
 ```bash
 # Install directly
-pip install python-dotenv pytz
+pip install python-dotenv pytz python-telegram-bot
 
 # Or install from requirements.txt
 pip install -r requirements.txt
@@ -54,9 +72,6 @@ debug_mode = config.get_env("DEBUG_MODE", "False")
 # Read typed values from config.ini
 max_retries = config.get_config("network", "max_retries")  # Returns as int
 timeout = config.get_config("network", "timeout")  # Returns as float
-
-# Get an entire configuration section as a dictionary
-database_config = config.get_config_section("database")
 ```
 
 ### Logger Example
@@ -79,9 +94,41 @@ except Exception as e:
     logger.write_error_log(f"Error occurred: {str(e)}")
 ```
 
+### TelegramBot Example
+
+```python
+from tgbot import TelegramBot
+
+# Create a bot instance
+bot = TelegramBot(token="YOUR_BOT_TOKEN", chat_id="YOUR_CHAT_ID")
+
+# Send notification
+bot.send_message("✅ Application started successfully")
+```
+
+### FuturesAPIDecorator Example
+
+```python
+from futures_decorator import FuturesAPIDecorator
+from CryptoAPI.futures.binance_api import BinanceFutures
+
+# Create decorated API
+binance = BinanceFutures()
+trading_api = FuturesAPIDecorator(
+    api=binance,
+    token="YOUR_BOT_TOKEN", 
+    chat_id="YOUR_CHAT_ID"
+)
+
+# Execute trade with automatic logging and notification
+trading_api.place_market_order("BTC/USDT", "LONG", 5, 100.0)
+```
+
 For comprehensive documentation and advanced usage examples, please refer to the detailed README files for each utility:
 - [ConfigReader Documentation](./documentation/config_reader_README.md)
 - [Logger Documentation](./documentation/logger_README.md)
+- [TelegramBot Documentation](./documentation/tgbot_README.md)
+- [FuturesAPIDecorator Documentation](./documentation/futures_decorator_README.md)
 
 ## License
 
