@@ -7,9 +7,9 @@ A collection of utility modules for common development tasks in Python applicati
 ### ConfigReader
 A flexible configuration management utility that allows you to:
 - Read configuration values from environment variables (.env files)
-- Parse INI configuration files with automatic type conversion
+- Parse YAML configuration files
 - Retrieve individual settings or entire configuration sections
-- Access configuration with a clean, consistent API
+- Access nested configuration with a clean, consistent API
 
 [View detailed ConfigReader documentation](./documentation/config_reader_README.md)
 
@@ -62,16 +62,18 @@ A `requirements.txt` file is included in the repository for easy installation of
 ```python
 from config_reader import ConfigReader
 
-# Initialize with default paths (.env and config.ini)
+# Initialize with default paths (.env and config.yaml)
 config = ConfigReader()
 
 # Read from environment variables
 api_key = config.get_env("API_KEY")
 debug_mode = config.get_env("DEBUG_MODE", "False")
 
-# Read typed values from config.ini
-max_retries = config.get_config("network", "max_retries")  # Returns as int
-timeout = config.get_config("network", "timeout")  # Returns as float
+# Read values from config.yaml
+max_retries = config.get_config("network", "max_retries")
+timeout = config.get_config("network", "timeout")
+# Access deeply nested values
+db_host = config.get_config("database", "connection", "host")
 ```
 
 ### Logger Example

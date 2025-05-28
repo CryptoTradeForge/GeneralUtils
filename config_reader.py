@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 """
-Config Reader Module - A utility for reading configuration from environment variables and INI files
+Config Reader Module - A utility for reading configuration from environment variables and YAML files
 """
 import os
-import configparser
+import yaml
 from typing import Any, Dict, Optional, List, Union
 from dotenv import load_dotenv
 
 class ConfigReader:
     """
-    A utility class for reading configuration from environment variables and INI files.
+    A utility class for reading configuration from environment variables and YAML files.
     """
     
-    def __init__(self, env_path: Optional[str] = ".env", config_path: Optional[str] = "config.ini"):
+    def __init__(self, env_path: Optional[str] = ".env", config_path: Optional[str] = "config.yaml"):
         """
         Initialize the ConfigReader.
         
         Args:
             env_path: Path to the .env file. Set to None to skip loading .env file.
-            config_path: Path to the config.ini file. Set to None to skip loading config file.
+            config_path: Path to the config.yaml file. Set to None to skip loading config file.
         """
-        self.config_parser = configparser.ConfigParser()
+        self.config_data = {}
         self.config_path = config_path
         
         # Load environment variables if env_path is provided
@@ -29,7 +29,19 @@ class ConfigReader:
         
         # Load config file if config_path is provided
         if config_path and os.path.exists(config_path):
-            self.config_parser.read(config_path, encoding="utf-8")
+            self._load_yaml_config()
+    
+    def _load_yaml_config(self):
+        """Load configuration from YAML file."""
+        try:
+            with open(self.config_path, 'r', encoding='utf-8') as file:
+                self.config_data = yaml.safe_load(file) or {}
+        except yaml.YAMLError as e:
+            print(f"Error parsing YAML file: {e}")
+            self.config_data = {}
+        except Exception as e:
+            print(f"Error loading config file: {e}")
+            self.config_data = {}
     
     def get_env(self, key: str, default: Any = None) -> Any:
         """
@@ -60,89 +72,54 @@ class ConfigReader:
         
         return {key: os.getenv(key) for key in keys if os.getenv(key) is not None}
     
-    def _convert_value_type(self, value: str) -> Any:
+    def get_config(self, *keys, default: Any = None) -> Any:
         """
-        Convert string value to appropriate type (int, float, bool, or string).
+        Get a value from the config.yaml file with nested key support.
         
         Args:
-            value: String value to convert
+            *keys: Key path to access nested values (e.g., 'database', 'connection', 'host')
+            default: Default value if the key path doesn't exist
             
         Returns:
-            Converted value with appropriate type
+            The value from the config or the default
         """
-        # Try converting to int
-        try:
-            return int(value)
-        except ValueError:
-            pass
-        
-        # Try converting to float
-        try:
-            return float(value)
-        except ValueError:
-            pass
-        
-        # Check for boolean values
-        if value.lower() in ('true', 'yes', '1'):
-            return True
-        if value.lower() in ('false', 'no', '0'):
-            return False
-        
-        # Return as string if no conversion applies
-        return value
-    
-    def get_config(self, section: str, key: str, default: Any = None) -> Any:
-        """
-        Get a value from the config.ini file with automatic type conversion.
-        
-        Args:
-            section: The section in the INI file
-            key: The key in the section
-            default: Default value if the section/key doesn't exist
-            
-        Returns:
-            The value from the config (with appropriate type) or the default
-        """
-        try:
-            value = self.config_parser.get(section, key)
-            return self._convert_value_type(value)
-        except (configparser.NoSectionError, configparser.NoOptionError):
+        if not keys:
             return default
+        
+        current = self.config_data
+        for key in keys:
+            if isinstance(current, dict) and key in current:
+                current = current[key]
+            else:
+                return default
+        
+        return current
     
     def get_config_section(self, section: str) -> Dict[str, Any]:
         """
-        Get an entire section from the config file as a dictionary with typed values.
+        Get an entire section from the config file as a dictionary.
         
         Args:
-            section: The section name in the INI file
+            section: The top-level key in the YAML file
             
         Returns:
-            Dictionary containing all keys/values in the section with appropriate types
+            Dictionary containing all nested values in the section
         """
-        try:
-            if section in self.config_parser:
-                return {key: self._convert_value_type(value) 
-                        for key, value in self.config_parser[section].items()}
-            return {}
-        except (configparser.NoSectionError, KeyError):
-            return {}
+        return self.config_data.get(section, {})
     
-    def get_all_config(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_config(self) -> Dict[str, Any]:
         """
-        Get the entire config file as a nested dictionary with typed values.
+        Get the entire config file as a dictionary.
         
         Returns:
-            Dictionary where keys are section names and values are
-            dictionaries of key/value pairs in each section
+            Dictionary containing all configuration values
         """
-        return {section: self.get_config_section(section) 
-                for section in self.config_parser.sections()}
+        return self.config_data
     
     def reload(self) -> None:
         """
-        Reload the configuration from the ini file.
+        Reload the configuration from the YAML file.
         Useful when the file contents might have changed.
         """
         if self.config_path and os.path.exists(self.config_path):
-            self.config_parser = configparser.ConfigParser()
-            self.config_parser.read(self.config_path, encoding="utf-8")
+            self._load_yaml_config()
