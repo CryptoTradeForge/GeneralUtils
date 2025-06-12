@@ -54,7 +54,7 @@ class ExclusionCoinsRecord:
     
 # Example usage:
 if __name__ == "__main__":
-        
+    
     exclusion_coins = ExclusionCoinsRecord()
     exclusion_coins.add_stable_coin("USDC")
     exclusion_coins.add_problematic_coin("XYZ")
