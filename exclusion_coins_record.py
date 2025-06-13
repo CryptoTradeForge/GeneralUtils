@@ -34,6 +34,25 @@ class ExclusionCoinsRecord:
             self.problematic_coins.append(coin_symbol)
             self._save_exclusion_coins()
     
+    def get_stable_coins(self) -> list:
+        """Return the list of stable coins."""
+        return self.stable_coins
+    
+    def get_problematic_coins(self) -> list:
+        """Return the list of problematic coins."""
+        return self.problematic_coins
+    
+    def geu_exclusion_coins(self) -> list:
+        """Return a combined list of stable and problematic coins."""
+        return self.stable_coins + self.problematic_coins        
+    
+    def filter_coins(self, coins: list) -> list:
+        """Filter out stable and problematic coins from the provided list."""
+        return [
+            coin for coin in coins 
+            if coin not in self.stable_coins and coin not in self.problematic_coins
+        ] 
+        
     # -------------------- assisted functions --------------------
     def _save_exclusion_coins(self):
         """Save the updated exclusion coins to the JSON file."""
@@ -43,14 +62,7 @@ class ExclusionCoinsRecord:
         }
         with open(self.exclusion_coins_path, 'w') as file:
             json.dump(exclusion_data, file, indent=4)
-            
     
-    def filter_coins(self, coins: list) -> list:
-        """Filter out stable and problematic coins from the provided list."""
-        return [
-            coin for coin in coins 
-            if coin not in self.stable_coins and coin not in self.problematic_coins
-        ]
     
 # Example usage:
 if __name__ == "__main__":
