@@ -42,17 +42,19 @@ class ExclusionCoinsRecord:
         """Return the list of problematic coins."""
         return self.problematic_coins
     
-    def geu_exclusion_coins(self) -> list:
+    def get_exclusion_coins(self) -> list:
         """Return a combined list of stable and problematic coins."""
         return self.stable_coins + self.problematic_coins        
     
-    def filter_coins(self, coins: list) -> list:
-        """Filter out stable and problematic coins from the provided list."""
-        return [
-            coin for coin in coins 
-            if coin not in self.stable_coins and coin not in self.problematic_coins
-        ] 
+    def filter_symbols(self, symbols: list) -> list:
+        """Filter out stable and problematic symbols from the provided list."""
         
+        exclusion_symbols = [i+"USDT" for i in self.get_exclusion_coins()]
+        return [
+            symbol for symbol in symbols 
+            if symbol not in exclusion_symbols
+        ]
+    
     # -------------------- assisted functions --------------------
     def _save_exclusion_coins(self):
         """Save the updated exclusion coins to the JSON file."""
