@@ -85,6 +85,16 @@ class FuturesAPIDecorator:
         # Send notification via telegram if available
         if self.tgbot:
             try:
+                message = f"{status}: {action}\n"
+                
+                if details:
+                    message += f"🧾 Details:\n"
+                    for key, value in details.items():
+                        message += f"{key}: {value}\n"
+                
+                if error:
+                    message += f"⚠️ Error: {str(object=error)}\n"
+                
                 self.tgbot.send_message(message)
             except Exception as e:
                 self.logger.write_error_log(f"Failed to send Telegram notification: {str(e)}")
@@ -194,9 +204,26 @@ class FuturesAPIDecorator:
                 if len(args) > 6:
                     details["take_profit"] = args[6]
                     
-            # Override with kwargs if present
-            details.update({k: v for k, v in kwargs.items() 
-                          if k in ["position_type", "price", "leverage", "amount", "stop_loss_price", "take_profit_price"]})
+            # # Override with kwargs if present
+            # details.update({k: v for k, v in kwargs.items() 
+            #               if k in ["position_type", "price", "leverage", "amount", "stop_loss_price", "take_profit_price"]})
+            
+            # 對應 key 轉換表
+            key_mapping = {
+                "position_type": "position",
+                "price": "price",
+                "leverage": "leverage",
+                "amount": "amount",
+                "stop_loss_price": "stop loss",
+                "take_profit_price": "take profit"
+            }
+
+            # 轉換後更新 details
+            details.update({
+                key_mapping[k]: v for k, v in kwargs.items() if k in key_mapping
+            })
+            
+                
                 
         elif method_name == "close_position":
             if len(args) > 2:
