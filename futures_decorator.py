@@ -220,7 +220,7 @@ class FuturesAPIDecorator:
 
             # 轉換後更新 details
             details.update({
-                key_mapping[k]: v for k, v in kwargs.items() if k in keygi_mapping
+                key_mapping[k]: v for k, v in kwargs.items() if k in key_mapping
             })
             
                 
