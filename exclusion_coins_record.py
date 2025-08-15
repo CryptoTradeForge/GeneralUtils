@@ -3,7 +3,7 @@ import json
 
 
 class ExclusionCoinsRecord:
-    def __init__(self, exclusion_coins_path: str = "GeneralUtils/exclusion_coins.json"):
+    def __init__(self, exclusion_coins_path: str = "libs/GeneralUtils/exclusion_coins.json"):
         self.exclusion_coins_path = exclusion_coins_path
         if not os.path.exists(self.exclusion_coins_path):
             self.stable_coins = []
