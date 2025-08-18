@@ -1,8 +1,7 @@
 from typing import Optional, List, Dict, Union, Any, Callable
 import functools
-import os
-import traceback
 import json
+from logging import getLogger
 
 class FuturesAPIDecorator:
     """
@@ -28,15 +27,14 @@ class FuturesAPIDecorator:
         'get_historical_data'
     ]
     
-    def __init__(self, api, logger=None, tgbot=None, log_dir=None, token=None, chat_id=None):
+    def __init__(self, api, tgbot=None, logger=None, token=None, chat_id=None):
         """
         Initialize the decorator with a FuturesAPI instance.
         
         Args:
             api: An instance of a class implementing the AbstractFuturesAPI interface
-            logger: Optional Logger instance. If None, a new Logger will be created
             tgbot: Optional TelegramBot instance. If None, a new TelegramBot will be created
-            log_dir: Directory for logs (if logger is None)
+            logger: Optional Logger instance. If None, a new Logger will be created
             token: Telegram bot token (if tgbot is None)
             chat_id: Telegram chat ID (if tgbot is None)
         """
@@ -44,11 +42,10 @@ class FuturesAPIDecorator:
         
         # Initialize logger
         if logger is None:
-            from .logger import Logger
-            self.logger = Logger(log_dir=log_dir)
+            self.logger = getLogger(__name__)
         else:
             self.logger = logger
-            
+        
         # Initialize Telegram bot
         if tgbot is None and token and chat_id:
             from .tgbot import TelegramBot
@@ -78,9 +75,9 @@ class FuturesAPIDecorator:
             
         if error:
             message += f"\nError: {str(error)}"
-            self.logger.write_error_log(message)
+            self.logger.error(message)
         else:
-            self.logger.write_log(message)
+            self.logger.info(message)
             
         # Send notification via telegram if available
         if self.tgbot:
@@ -97,7 +94,7 @@ class FuturesAPIDecorator:
                 
                 self.tgbot.send_message(message)
             except Exception as e:
-                self.logger.write_error_log(f"Failed to send Telegram notification: {str(e)}")
+                self.logger.error(f"Failed to send Telegram notification: {str(e)}")
     
     def _decorate_methods(self):
         """
