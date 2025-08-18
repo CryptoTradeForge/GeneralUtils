@@ -1,7 +1,9 @@
 import logging
 import os
 from logging.handlers import RotatingFileHandler
-from typing import Optional
+from typing import Optional, Union
+import pytz
+from datetime import datetime
 
 # 彩色輸出輔助
 LEVEL_COLORS = {
@@ -13,7 +15,24 @@ LEVEL_COLORS = {
 }
 RESET_COLOR = "\033[0m"
 
-class ColoredFormatter(logging.Formatter):
+class TimezoneFormatter(logging.Formatter):
+    """支援時區的 Formatter"""
+    def __init__(self, fmt=None, datefmt=None, timezone=None):
+        super().__init__(fmt, datefmt)
+        self.timezone = timezone
+    
+    def formatTime(self, record, datefmt=None):
+        if self.timezone:
+            dt = datetime.fromtimestamp(record.created, tz=self.timezone)
+        else:
+            dt = datetime.fromtimestamp(record.created)
+        
+        if datefmt:
+            return dt.strftime(datefmt)
+        else:
+            return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+class ColoredFormatter(TimezoneFormatter):
     def format(self, record):
         levelname = record.levelname
         color = LEVEL_COLORS.get(levelname, "")
@@ -27,7 +46,8 @@ def set_logger(
     stream_log_level: int = logging.WARNING,
     log_level: int = logging.DEBUG,
     max_bytes: int = 5 * 1024 * 1024,  # 5MB
-    backup_count: int = 3
+    backup_count: int = 3,
+    timezone: Optional[Union[str, pytz.BaseTzInfo]] = None
 ) -> logging.Logger:
     
     # 步驟 1: 設定 logger
@@ -35,15 +55,29 @@ def set_logger(
     logger.setLevel(log_level)
     logger.handlers.clear()  # 清除現有 handlers
 
+    # 處理時區參數
+    tz = None
+    if timezone:
+        if isinstance(timezone, str):
+            # 如果是字符串，轉換為 pytz 時區對象
+            tz = pytz.timezone(timezone)
+        elif isinstance(timezone, pytz.BaseTzInfo):
+            # 如果已經是 pytz 時區對象，直接使用
+            tz = timezone
+        else:
+            raise ValueError(f"timezone 必須是字符串或 pytz.BaseTzInfo 物件，收到: {type(timezone)}")
+
     # --- File 格式（詳細） ---
-    file_formatter = logging.Formatter(
+    file_formatter = TimezoneFormatter(
         '%(asctime)s | %(name)s | %(levelname)s | %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        datefmt='%Y-%m-%d %H:%M:%S',
+        timezone=tz
     )
 
     # --- Stream 格式（彩色 [LEVEL] + message） ---
     stream_formatter = ColoredFormatter(
-        '%(levelname)s %(message)s'
+        '%(levelname)s %(message)s',
+        timezone=tz
     )
 
     # 步驟 2: 檔案 handler

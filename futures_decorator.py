@@ -71,10 +71,10 @@ class FuturesAPIDecorator:
         
         if details:
             detail_str = json.dumps(details, ensure_ascii=False)
-            message += f"\nDetails: {detail_str}"
+            message += f", Details: {detail_str}"
             
         if error:
-            message += f"\nError: {str(error)}"
+            message += f", Error: {str(error)}"
             self.logger.error(message)
         else:
             self.logger.info(message)
