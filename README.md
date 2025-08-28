@@ -1,136 +1,215 @@
 # General Utilities
 
-A collection of utility modules for common development tasks in Python applications.
+A collection of essential utility modules for cryptocurrency trading applications and general Python development.
 
 ## Available Utilities
 
-### ConfigReader
-A flexible configuration management utility that allows you to:
-- Read configuration values from environment variables (.env files)
-- Parse YAML configuration files
-- Retrieve individual settings or entire configuration sections
-- Access nested configuration with a clean, consistent API
-
-[View detailed ConfigReader documentation](./documentation/config_reader_README.md)
-
 ### Logger
-A robust logging utility with advanced features:
-- Write timestamped log messages to rotating daily files
-- Separate general logs from error logs
-- Full timezone support for accurate timestamps across different regions
-- Handle various time formats (timestamps, datetime objects, string dates)
-- Configurable log retention policies
-
-[View detailed Logger documentation](./documentation/logger_README.md)
+A modern logging utility with advanced features:
+- Rotating file handlers with configurable size limits and backup counts
+- Timezone-aware timestamping with pytz support
+- Colored console output for different log levels
+- Flexible log level configuration for both file and stream handlers
+- UTF-8 encoding support for international characters
+- Clean, customizable formatting for both file and console output
 
 ### TelegramBot
-A simple utility for sending Telegram notifications:
-- Send text messages to specified Telegram chat IDs
-- Easy integration with other applications
-- Simple API with minimal dependencies
-- Error handling for API communication issues
+A lightweight utility for sending Telegram notifications:
+- Asynchronous message sending with simple synchronous interface
+- Direct token and chat_id configuration
+- Clean error handling for API communication
+- Minimal dependencies for easy integration
+- Perfect for trading alerts and system notifications
 
-[View detailed TelegramBot documentation](./documentation/tgbot_README.md)
-
-### FuturesAPIDecorator
-A decorator utility for cryptocurrency futures trading APIs:
-- Automatically log all trading actions (market orders, limit orders, position closures)
-- Send real-time notifications via Telegram for trading operations
-- Record both successful and failed trading actions
-- Compatible with any futures trading API that follows the AbstractFuturesAPI interface
-
-[View detailed FuturesAPIDecorator documentation](./documentation/futures_decorator_README.md)
+### ExclusionCoinsRecord
+A specialized utility for cryptocurrency trading symbol management:
+- Manage lists of stable coins and problematic trading pairs
+- Automatic symbol filtering for trading strategies
+- JSON-based persistence for exclusion lists
+- Smart symbol handling (automatic USDT suffix management)
+- Easy integration with trading algorithms
 
 ## Installation
 
 ### Using pip
 
 ```bash
-# Install directly
-pip install python-dotenv pytz python-telegram-bot
+# Install dependencies
+pip install pytz python-telegram-bot
 
 # Or install from requirements.txt
 pip install -r requirements.txt
 ```
 
-A `requirements.txt` file is included in the repository for easy installation of dependencies.
-
 ## Quick Start
-
-### ConfigReader Example
-
-```python
-from config_reader import ConfigReader
-
-# Initialize with default paths (.env and config.yaml)
-config = ConfigReader()
-
-# Read from environment variables
-api_key = config.get_env("API_KEY")
-debug_mode = config.get_env("DEBUG_MODE", "False")
-
-# Read values from config.yaml
-max_retries = config.get_config("network", "max_retries")
-timeout = config.get_config("network", "timeout")
-# Access deeply nested values
-db_host = config.get_config("database", "connection", "host")
-```
 
 ### Logger Example
 
 ```python
-from logger import Logger
+from GeneralUtils import set_logger
+import logging
 
-# Initialize with default settings
-logger = Logger()
+# Create a logger with file output and colored console
+logger = set_logger(
+    name="my_app",
+    filepath="logs/app.log",
+    file_log_level=logging.DEBUG,
+    stream_log_level=logging.INFO,
+    timezone="Asia/Taipei"
+)
 
-# Write general logs
-logger.write_log("Application started")
-logger.write_log("Processing item ID: 12345")
-
-# Log errors
-try:
-    # Some operation
-    result = 10 / 0
-except Exception as e:
-    logger.write_error_log(f"Error occurred: {str(e)}")
+# Use the logger
+logger.info("Application started")
+logger.warning("This is a warning")
+logger.error("An error occurred")
+logger.debug("Debug information")
 ```
 
 ### TelegramBot Example
 
 ```python
-from tgbot import TelegramBot
+from GeneralUtils import TelegramBot
 
 # Create a bot instance
 bot = TelegramBot(token="YOUR_BOT_TOKEN", chat_id="YOUR_CHAT_ID")
 
-# Send notification
-bot.send_message("✅ Application started successfully")
+# Send notifications
+bot.send_message("🚀 Trading bot started")
+bot.send_message("📈 Position opened: BTC/USDT LONG")
+bot.send_message("✅ Trade completed successfully")
 ```
 
-### FuturesAPIDecorator Example
+### ExclusionCoinsRecord Example
 
 ```python
-from futures_decorator import FuturesAPIDecorator
-from CryptoAPI.futures.binance_api import BinanceFutures
+from GeneralUtils import ExclusionCoinsRecord
 
-# Create decorated API
-binance = BinanceFutures()
-trading_api = FuturesAPIDecorator(
-    api=binance,
-    token="YOUR_BOT_TOKEN", 
-    chat_id="YOUR_CHAT_ID"
-)
+# Initialize exclusion manager
+exclusion = ExclusionCoinsRecord("data/exclusion_coins.json")
 
-# Execute trade with automatic logging and notification
-trading_api.place_market_order("BTC/USDT", "LONG", 5, 100.0)
+# Add coins to exclusion lists
+exclusion.add_stable_coin("USDC")
+exclusion.add_problematic_coin("HYPE")
+
+# Filter trading symbols
+all_symbols = ["BTCUSDT", "ETHUSDT", "USDCUSDT", "HYPEUSDT", "ADAUSDT"]
+filtered_symbols = exclusion.filter_symbols(all_symbols)
+print(filtered_symbols)  # ['BTCUSDT', 'ETHUSDT', 'ADAUSDT']
+
+# Get exclusion lists
+stable_coins = exclusion.get_stable_coins()
+problematic_coins = exclusion.get_problematic_coins()
+all_excluded = exclusion.get_exclusion_coins()
 ```
 
-For comprehensive documentation and advanced usage examples, please refer to the detailed README files for each utility:
-- [ConfigReader Documentation](./documentation/config_reader_README.md)
-- [Logger Documentation](./documentation/logger_README.md)
-- [TelegramBot Documentation](./documentation/tgbot_README.md)
-- [FuturesAPIDecorator Documentation](./documentation/futures_decorator_README.md)
+## File Structure
+
+```
+libs/GeneralUtils/
+├── __init__.py              # Package initialization and exports
+├── logger.py                # Advanced logging with timezone support
+├── tgbot.py                 # Telegram notification utility
+├── exclusion_coins_record.py # Cryptocurrency symbol filtering
+├── exclusion_coins_example.json # Example exclusion configuration
+├── requirements.txt         # Package dependencies
+├── LICENSE                  # Apache 2.0 License
+└── README.md               # This file
+```
+
+## Key Features
+
+- **Modular Design**: Each utility is independent and can be used separately
+- **Cryptocurrency Trading Focus**: Specialized tools for trading applications
+- **Production Ready**: Robust error handling and logging
+- **Easy Integration**: Simple APIs with sensible defaults
+- **Timezone Support**: Full timezone awareness for global trading
+- **Notification System**: Real-time Telegram alerts for trading events
+
+## Advanced Usage
+
+### Logger with Custom Configuration
+
+```python
+from GeneralUtils import set_logger
+import logging
+
+# Create logger with custom settings
+logger = set_logger(
+    name="trading_bot",
+    filepath="logs/trading.log",
+    file_log_level=logging.DEBUG,      # Log everything to file
+    stream_log_level=logging.WARNING,  # Only warnings+ to console
+    max_bytes=10 * 1024 * 1024,       # 10MB per log file
+    backup_count=5,                    # Keep 5 backup files
+    timezone="UTC"                     # Use UTC timezone
+)
+
+# The logger automatically handles:
+# - File rotation when size limit is reached
+# - Colored output in console
+# - Timezone-aware timestamps
+# - UTF-8 encoding for international characters
+```
+
+### ExclusionCoinsRecord Advanced Features
+
+```python
+from GeneralUtils import ExclusionCoinsRecord
+
+# Initialize with custom path
+exclusion = ExclusionCoinsRecord("custom/path/exclusions.json")
+
+# Bulk operations
+symbols_to_check = ["BTCUSDT", "ETHUSDT", "USDCUSDT", "DOGEUSDT"]
+clean_symbols = exclusion.filter_symbols(symbols_to_check)
+
+# The system automatically:
+# - Handles USDT suffix normalization
+# - Persists changes to JSON file
+# - Prevents duplicate entries
+# - Maintains separate stable/problematic lists
+```
+
+### Integration Example: Trading Bot with Full Logging and Notifications
+
+```python
+from GeneralUtils import set_logger, TelegramBot, ExclusionCoinsRecord
+import logging
+
+# Setup comprehensive logging
+logger = set_logger(
+    name="crypto_trader",
+    filepath="logs/trader.log",
+    timezone="Asia/Taipei"
+)
+
+# Setup notifications
+bot = TelegramBot(token="YOUR_TOKEN", chat_id="YOUR_CHAT_ID")
+
+# Setup symbol filtering
+exclusion = ExclusionCoinsRecord()
+
+class TradingBot:
+    def __init__(self):
+        self.logger = logger
+        self.notifications = bot
+        self.symbol_filter = exclusion
+    
+    def start_trading(self):
+        self.logger.info("🚀 Trading bot initialization started")
+        self.notifications.send_message("🚀 Trading bot started")
+        
+        # Get and filter symbols
+        all_symbols = self.get_available_symbols()
+        filtered_symbols = self.symbol_filter.filter_symbols(all_symbols)
+        
+        self.logger.info(f"📊 Filtered {len(all_symbols)} symbols to {len(filtered_symbols)}")
+```
+
+## Dependencies
+
+- **pytz** (>=2021.1): Timezone handling for global trading applications
+- **python-telegram-bot** (>=20.0): Telegram API integration for notifications
 
 ## License
 

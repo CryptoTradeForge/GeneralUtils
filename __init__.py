@@ -1,5 +1,5 @@
-from .config_reader import ConfigReader
 from .logger import set_logger
 from .tgbot import TelegramBot
+from .exclusion_coins_record import ExclusionCoinsRecord
 
-__all__ = ['ConfigReader', 'set_logger', 'TelegramBot']
+__all__ = ['set_logger', 'TelegramBot', 'ExclusionCoinsRecord']
